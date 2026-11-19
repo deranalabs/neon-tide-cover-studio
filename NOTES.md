@@ -28,6 +28,7 @@ http://localhost:8080.
   letter styles. The subtitle sits on a folded ribbon, the tagline is in spaced capitals, and there are a starburst
   badge, a wanted-style star row and an optional sun-and-palms emblem.
 - **Panel labels and neon script**: each panel can carry a short label ("THE DRIVER", upper-cased, at most 18 characters, set in the panel inspector) drawn as a small tilted white tag in its lower-left corner and left out where the caption covers it; the subtitle defaults to the new glowing Neon Script letter style (the ribbon stays one checkbox away).
+- **Poster layout and comic look**: Poster is now a hero on the left half plus a balanced 2×2 block with slanted seams (each about 12–14 % of the panel area), with the title set low across the seam, clear of the hero's face. Panels get Sobel ink lines, a coarse halftone in the shadows and mid-tones, two-tone pink/cyan rim light and pink gutter keylines, and a banded magenta-to-orange sun sits behind the title. Known gap: in the 4:5 portrait shot the title still overlaps the middle-row face crop.
 - **Photos** (`app/src/photo/`): picker and drag-and-drop of several files at once. The EXIF orientation is read by
   hand and applied once (skipped if the browser already turned the picture). Photos are downscaled to 2400 px on the
   long side. One photo can fill several panels with different crops, and painted scenes fill the gaps when there are

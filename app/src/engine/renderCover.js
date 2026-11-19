@@ -5,7 +5,9 @@ import { aspectOf, layoutAnchor, layoutPanels } from './layouts.js';
 import { polygonBounds, tracePolygon } from './panelGeometry.js';
 import { panelLayer } from './panelPainter.js';
 import { resolvePreset } from './coverState.js';
-import { applyBloom, applyPrintTexture, drawLensFlare, drawSunGlow } from '../grade/effects.js';
+import { applyBloom, applyInkLines, applyPrintTexture, drawLensFlare, drawNeonRim, drawSunGlow }
+  from '../grade/effects.js';
+import { drawSunDisc } from '../grade/scenery.js';
 import { paintBannerStrip } from '../scenes/bannerStrip.js';
 import { drawCaptionBlock, drawTagline } from '../text/captionBlock.js';
 import { drawRatingStars } from '../text/ratingStars.js';
@@ -39,7 +41,7 @@ export function captionPlace(geometry, state) {
     cx: area.x + area.w * anchor.x + w * state.text.offsetX,
     cy: area.y + area.h * anchor.y + h * state.text.offsetY,
     maxWidth: Math.min(w * 0.94, w * anchor.width * scale),
-    maxHeight: Math.min(h * 0.4, short * 0.36) * scale,
+    maxHeight: Math.min(h * 0.4, short * (anchor.height ?? 0.36)) * scale,
     short,
     bounds: { left: geometry.border, right: w - geometry.border, top: geometry.border },
     withTagline: !geometry.banner,
@@ -66,25 +68,21 @@ function drawTitleShade(ctx, geometry, place) {
   ctx.restore();
 }
 
-/** Pale gutters with dark keylines between panels, and the bold outer border. */
-function drawFrame(ctx, geometry, frame) {
+/** Gutters between panels (dark ink keyline, hot pink neon line, pale core), and the bold outer border. */
+function drawFrame(ctx, geometry, frame, neon = '#ff3d9a') {
   const { w, h, border, gutter, short } = geometry;
   const key = Math.max(1, short * 0.0025);
   ctx.save();
   ctx.lineJoin = 'miter';
-  for (const panel of geometry.panels) {
-    ctx.beginPath();
-    tracePolygon(ctx, panel.polygon);
-    ctx.strokeStyle = frame.key ?? '#0a0610';
-    ctx.lineWidth = gutter + key * 2;
-    ctx.stroke();
-  }
-  for (const panel of geometry.panels) {
-    ctx.beginPath();
-    tracePolygon(ctx, panel.polygon);
-    ctx.strokeStyle = frame.gutter;
-    ctx.lineWidth = gutter;
-    ctx.stroke();
+  const passes = [[frame.key ?? '#0a0610', gutter + key * 4], [neon, gutter + key * 1.6], [frame.gutter, gutter * 0.45]];
+  for (const [colour, width] of passes) {
+    for (const panel of geometry.panels) {
+      ctx.beginPath();
+      tracePolygon(ctx, panel.polygon);
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = width;
+      ctx.stroke();
+    }
   }
   ctx.fillStyle = frame.border;
   ctx.beginPath();
@@ -200,10 +198,34 @@ export function renderCover(ctx, w, h, state, photos) {
     ctx.drawImage(layer, bx, by);
     ctx.restore();
   }
-  if (state.text.title.trim()) drawTitleShade(ctx, geometry, place);
-  drawFrame(ctx, geometry, frame);
-  if (geometry.banner) paintBannerStrip(ctx, geometry.banner, preset, state.seed);
+  // Comic print look over the panels: ink on strong photo edges, then a coarse halftone screen that shows in
+  // shadows and mid-tones (dots shrink to nothing in highlights, so faces stay clear).
+  const ink = { x: Math.round(geometry.area.x), y: Math.round(geometry.area.y) };
+  ink.w = Math.round(geometry.area.w);
+  ink.h = Math.round(geometry.area.h);
+  applyInkLines(ctx, ink.x, ink.y, ink.w, ink.h, 0.8, w / 960);
+  applyPrintTexture(ctx, ink.w, ink.h, { halftone: Math.min(0.6, preset.halftone * 2.4), grain: 0, seed: state.seed,
+    cell: w / 170, x: ink.x, y: ink.y });
+  for (const panel of geometry.panels) {
+    const colours = panel.index % 2 ? [preset.rim[1], preset.rim[0]] : [preset.rim[0], preset.rim[1]];
+    drawNeonRim(ctx, panel.polygon, panel.bounds, colours, 0.85, geometry.short * 0.006);
+  }
   const { area } = geometry;
+  const hasTitle = Boolean(state.text.title.trim());
+  if (hasTitle) drawTitleShade(ctx, geometry, place);
+  drawFrame(ctx, geometry, frame, preset.rim[0]);
+  if (hasTitle) {
+    // A banded magenta-to-orange sun behind the title, set above its centre so the letters cross its stripes.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(area.x, area.y, area.w, area.h);
+    ctx.clip();
+    drawSunDisc(ctx, place.cx, place.cy - place.maxHeight * 0.14, place.maxHeight * 0.6,
+      [preset.sun[1], preset.sun[2], preset.sun[3], '#5a0f8a'],
+      { stripes: 7, haloAlpha: 0.6 });
+    ctx.restore();
+  }
+  if (geometry.banner) paintBannerStrip(ctx, geometry.banner, preset, state.seed);
   const sunX = area.x + area.w * (geometry.aspect === 'landscape' ? 0.06 : 0.1);
   const sunY = area.y + area.h * (geometry.aspect === 'portrait' ? 0.16 : 0.3);
   ctx.save();

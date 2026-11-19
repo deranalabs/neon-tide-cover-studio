@@ -30,21 +30,19 @@ function slantedColumns(lines) {
 
 /** Landscape (and square) panels for each layout, wide side across. */
 const LANDSCAPE = {
+  // Hero on the left half, then a 2x2 block of balanced panels with slanted seams (top row a little taller).
   poster: () => {
-    const seam = [0.6, 0.555];
-    const rowA = [0.4, 0.35];
-    const rowB = [0.71, 0.67];
-    const cut = [0.81, 0.79];
-    const a0 = cross(...seam, ...rowA);
-    const b0 = cross(...seam, ...rowB);
-    const a1 = cross(...cut, ...rowA);
-    const b1 = cross(...cut, ...rowB);
+    const seam = [0.525, 0.475];
+    const cut = [0.765, 0.735];
+    const row = [0.56, 0.53];
+    const a = cross(...seam, ...row);
+    const b = cross(...cut, ...row);
     return [
       [[0, 0], [seam[0], 0], [seam[1], 1], [0, 1]],
-      [[seam[0], 0], [1, 0], [1, rowA[1]], a0],
-      [a0, a1, b1, b0],
-      [a1, [1, rowA[1]], [1, rowB[1]], b1],
-      [b0, [1, rowB[1]], [1, 1], [seam[1], 1]],
+      [[seam[0], 0], [cut[0], 0], b, a],
+      [[cut[0], 0], [1, 0], [1, row[1]], b],
+      [a, b, [cut[1], 1], [seam[1], 1]],
+      [b, [1, row[1]], [1, 1], [cut[1], 1]],
     ];
   },
   hero: () => [rect(0, 0, 1, 1)],
@@ -115,13 +113,16 @@ const LANDSCAPE = {
   },
 };
 
-/** A caption anchor: centre (x, y) as 0..1 of the panel area and the share of the cover width the title may use. */
-const at = (x, y, width = 0.84) => ({ x, y, width });
+/**
+ * A caption anchor: centre (x, y) as 0..1 of the panel area, the share of the cover width the title may use and
+ * the share of the short side its height may use.
+ */
+const at = (x, y, width = 0.84, height = 0.36) => ({ x, y, width, height });
 
 /** Layout catalogue in the order the editor lists it, with the default caption anchor per aspect. */
 export const LAYOUTS = [
-  { id: 'poster', label: 'Poster 1+4', anchor: { landscape: at(0.44, 0.69, 0.78), square: at(0.5, 0.66, 0.86),
-    portrait: at(0.5, 0.56, 0.88) } },
+  { id: 'poster', label: 'Poster 1+4', anchor: { landscape: at(0.53, 0.73, 0.74, 0.29), square: at(0.5, 0.7, 0.86),
+    portrait: at(0.5, 0.58, 0.88) } },
   { id: 'hero', label: 'Hero', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.76) } },
   { id: 'split', label: 'Split', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.5) } },
   { id: 'stack', label: 'Stack', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.7) } },

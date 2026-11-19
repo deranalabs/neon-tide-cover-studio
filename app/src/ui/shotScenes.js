@@ -15,25 +15,25 @@ export function shotState(boulevard, pier) {
     stars: 4,
     seed: 7,
     panels: [
-      // Hero: the woman leaning on the convertible, palms and the low sun behind her.
-      { source: photo(boulevard), crop: crop(1, 0.55, 0.06), tint: 'ember', label: 'The Driver' },
-      // A tight face crop of the man on the pier.
-      { source: photo(pier), crop: crop(1.5, 0.29, 0.18), tint: 'rose', label: 'The Angler' },
-      // The chrome mirror and red paint of the car (mostly behind the title).
-      { source: photo(boulevard), crop: crop(2.6, 0, 0.8), tint: 'ultraviolet' },
-      // The lifeguard tower and the beach under the sun.
-      { source: photo(boulevard), crop: crop(3, 0.18, 0.29), tint: 'flamingo', label: 'One Last Summer' },
-      // The sea, the rod and the pier rail.
-      { source: photo(pier), crop: crop(1.8, 1, 0.55), tint: 'lagoon', label: 'Low Tide' },
-      // A palm row against the sunset sky (shown by six- and seven-panel layouts).
-      { source: photo(boulevard), crop: crop(2, 1, 0.05), tint: 'flamingo' },
-      { source: photo(pier), crop: crop(2.4, 0.9, 0.7), tint: 'ultraviolet' },
+      // Hero: a tight crop of the woman's face and sunglasses, palms behind her; the title sits below her chin.
+      { source: photo(boulevard), crop: crop(1.35, 0.6, 0.1), tint: 'flamingo', label: 'The Driver' },
+      // A tight face crop of the man in the bucket hat.
+      { source: photo(pier), crop: crop(1.8, 0.41, 0.2), tint: 'rose', label: 'The Angler' },
+      // The lifeguard tower with palms under the low sun.
+      { source: photo(boulevard), crop: crop(2.6, 0.14, 0.29), tint: 'ember', label: 'One Last Summer' },
+      // The car's chrome mirror (mostly behind the title and its sun).
+      { source: photo(boulevard), crop: crop(2.4, 0.12, 0.74), tint: 'ultraviolet' },
+      // The pier rail and the fishing rod over teal water.
+      { source: photo(pier), crop: crop(2.2, 0.82, 0.58), tint: 'lagoon' },
+      // Extra crops for six- and seven-panel layouts: the palm row in the sunset sky, the far beach and trees.
+      { source: photo(boulevard), crop: crop(2, 0.95, 0.05), tint: 'flamingo' },
+      { source: photo(pier), crop: crop(2.4, 0.08, 0.3), tint: 'ultraviolet' },
     ],
     text: {
       title: 'Neon Tide',
       subtitle: 'Salt Air Stories',
       tagline: 'Coming soon',
-      badge: 'New',
+      badge: 'Vol. 1',
       ribbon: false,
     },
   });

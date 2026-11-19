@@ -49,11 +49,12 @@ export function applyBloom(ctx, w, h, strength) {
 
 /**
  * Print texture over the whole cover: a 45-degree halftone screen whose dots grow in the shadows, and seeded
- * grain. Cell size follows the cover width so the preview and the export look alike.
+ * grain. Cell size follows the cover width so the preview and the export look alike. `x`, `y` (whole px) move the
+ * w x h region the pass works on.
  */
-export function applyPrintTexture(ctx, w, h, { halftone, grain, seed, cell: cellSize }) {
+export function applyPrintTexture(ctx, w, h, { halftone, grain, seed, cell: cellSize, x: left = 0, y: top = 0 }) {
   if (halftone <= 0 && grain <= 0) return;
-  const image = ctx.getImageData(0, 0, w, h);
+  const image = ctx.getImageData(left, top, w, h);
   const d = image.data;
   const cell = Math.max(3, cellSize ?? w / 300);
   const inv = 1 / (cell * Math.SQRT2);
@@ -92,7 +93,43 @@ export function applyPrintTexture(ctx, w, h, { halftone, grain, seed, cell: cell
       d[i + 2] = b;
     }
   }
-  ctx.putImageData(image, 0, 0);
+  ctx.putImageData(image, left, top);
+}
+
+/**
+ * Comic inking over the w x h region at (x, y): a Sobel edge pass on luminance, sampled `step` px apart, that
+ * draws strong photo edges as dark violet ink. Soft shading and grain stay under the threshold, so faces keep
+ * their tone and only outlines (hair, glasses, jaw, rails) get inked.
+ */
+export function applyInkLines(ctx, x, y, w, h, strength, step = 1) {
+  if (strength <= 0 || w < 8 || h < 8) return;
+  const image = ctx.getImageData(x, y, w, h);
+  const d = image.data;
+  const lum = new Float32Array(w * h);
+  for (let p = 0; p < lum.length; p += 1) lum[p] = 0.2126 * d[p * 4] + 0.7152 * d[p * 4 + 1] + 0.0722 * d[p * 4 + 2];
+  const s = Math.max(1, Math.round(step));
+  const row = s * w;
+  const lo = 170;
+  const hi = 520;
+  for (let py = s; py < h - s; py += 1) {
+    for (let px = s; px < w - s; px += 1) {
+      const p = py * w + px;
+      const tl = lum[p - row - s];
+      const tr = lum[p - row + s];
+      const bl = lum[p + row - s];
+      const br = lum[p + row + s];
+      const gx = tr + 2 * lum[p + s] + br - tl - 2 * lum[p - s] - bl;
+      const gy = bl + 2 * lum[p + row] + br - tl - 2 * lum[p - row] - tr;
+      const mag = Math.sqrt(gx * gx + gy * gy);
+      if (mag <= lo) continue;
+      const t = Math.min(1, (mag - lo) / (hi - lo)) * strength;
+      const i = p * 4;
+      d[i] += (22 - d[i]) * t;
+      d[i + 1] += (6 - d[i + 1]) * t;
+      d[i + 2] += (36 - d[i + 2]) * t;
+    }
+  }
+  ctx.putImageData(image, x, y);
 }
 
 /** Darkens the edges of a rectangle with a violet-black radial falloff. */
@@ -127,6 +164,42 @@ export function drawSunGlow(ctx, x, y, radius, strength) {
   glow.addColorStop(1, 'rgba(160, 40, 160, 0)');
   ctx.fillStyle = glow;
   ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  ctx.restore();
+}
+
+/** #rrggbb plus alpha as an rgba() string. */
+function rgba(hex, alpha) {
+  const v = parseInt(hex.slice(1), 16);
+  return `rgba(${(v >> 16) & 255}, ${(v >> 8) & 255}, ${v & 255}, ${Math.max(0, Math.min(1, alpha))})`;
+}
+
+/**
+ * A two-tone neon rim light inside a panel polygon: `left` colour washes in from the left edge, `right` from the
+ * right, screened like coloured stage light, plus a thin glowing edge line in the left colour.
+ */
+export function drawNeonRim(ctx, polygon, bounds, [left, right], strength, edge) {
+  if (strength <= 0) return;
+  const { x, y, w, h } = bounds;
+  ctx.save();
+  ctx.beginPath();
+  polygon.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
+  ctx.closePath();
+  ctx.clip();
+  ctx.globalCompositeOperation = 'screen';
+  for (const [colour, fromLeft, amount] of [[left, true, 1], [right, false, 0.7]]) {
+    const x0 = fromLeft ? x : x + w;
+    const side = ctx.createLinearGradient(x0, 0, fromLeft ? x + w * 0.4 : x + w * 0.6, 0);
+    side.addColorStop(0, rgba(colour, 0.8 * strength * amount));
+    side.addColorStop(0.3, rgba(colour, 0.3 * strength * amount));
+    side.addColorStop(1, rgba(colour, 0));
+    ctx.fillStyle = side;
+    ctx.fillRect(x, y, w, h);
+  }
+  ctx.shadowColor = left;
+  ctx.shadowBlur = edge * 3;
+  ctx.strokeStyle = rgba(left, 0.9 * strength);
+  ctx.lineWidth = edge;
+  ctx.stroke();
   ctx.restore();
 }
 
