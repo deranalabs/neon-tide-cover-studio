@@ -11,6 +11,7 @@
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
+// main.ts hands the entry in: copies app/ and screenshots/ to MAKEFUN_OUTPUT_DIR (or /output), writes dossier.json.
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
