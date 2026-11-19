@@ -1,8 +1,7 @@
-// Stroke skeletons for the display alphabet: chamfered block capitals, digits and punctuation drawn as polylines.
-//
-// Every glyph lives on a grid 10 units tall (y = 0 top, 10 baseline). `w` is the width of its centre lines and
-// `s` its strokes, each a string of "x,y" points; a trailing "z" closes the stroke. The lettering module strokes
-// these centre lines with a thick pen, so the visible letter is the skeleton grown by half the pen width.
+// Centre-line polylines for the cover's chamfered display alphabet (capitals, digits, punctuation).
+// Glyphs sit on a 10-unit grid (y = 0 top, 10 baseline); `w` is centre-line width, `s` lists "x,y" strokes
+// where a trailing "z" closes the path. The lettering module strokes these with a thick pen, and this file
+// also exports text normalisation and a glyph lookup that falls back to a space.
 
 export const GLYPH_HEIGHT = 10;
 

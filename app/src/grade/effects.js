@@ -1,4 +1,6 @@
-// Whole-cover finishing passes: bloom glow, halftone and film grain, vignette and a lens flare.
+// Finishing passes applied over the whole rendered cover: bloom glow, halftone dots, film grain,
+// vignette and a lens flare. Randomised passes use a seeded generator so the same seed always
+// produces the same cover.
 
 /** Mulberry32: a small seeded random generator so every pass draws the same way for the same seed. */
 export function seededRandom(seed) {
