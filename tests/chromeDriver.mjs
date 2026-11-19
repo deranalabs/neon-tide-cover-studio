@@ -147,5 +147,7 @@ export async function launchChrome({ width = 1280, height = 720 } = {}) {
     await new Promise((r) => setTimeout(r, 300));
     rmSync(profile, { recursive: true, force: true });
   };
-  return { send, evaluate, navigate, setViewport, logs, close };
+  /** Sends a browser-level command (Browser.*), outside the page session. */
+  const sendBrowser = (method, params) => deadline(raw(method, params), 30000, method);
+  return { send, sendBrowser, evaluate, navigate, setViewport, logs, close };
 }

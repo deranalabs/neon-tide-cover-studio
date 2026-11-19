@@ -237,6 +237,13 @@ export async function startEditor(query) {
     status('Sample photos loaded. Drop your own photos to replace them, then press E to export.');
   }
   history.push(state);
+  window.__coverEditor = {
+    state: () => structuredClone(state),
+    photos: () => photoList().map(({ id, name, width, height }) => ({ id, name, width, height })),
+    photoImage: (id) => photos.get(id)?.image ?? null,
+    geometry: () => preview.last?.geometry,
+    selected: () => selected,
+  };
   preview.render(state, photos);
   preview.mark({ selected, numbers: shot === 'editor' });
   syncAll();
