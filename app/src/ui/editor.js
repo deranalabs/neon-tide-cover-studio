@@ -1,5 +1,6 @@
-// The editor: owns the cover state, the loaded photos, undo history and saved settings, and wires the preview,
-// gestures, controls, shortcuts and export together. Every change goes through update() and one render path.
+// Editor controller: holds the cover state, loaded photos, undo history and saved settings.
+// Connects the preview, gestures, controls, keyboard shortcuts and export.
+// All changes flow through update() into a single render path.
 import { autoFillPanels } from '../engine/autoFill.js';
 import { defaultState, EXPORT_SIZES, normaliseState } from '../engine/coverState.js';
 import { LAYOUT_IDS, layoutPanelCount } from '../engine/layouts.js';

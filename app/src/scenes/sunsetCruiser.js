@@ -1,4 +1,6 @@
-// Painted filler panel: a low sports coupe in profile racing along a palm-lined coast road under a huge sun.
+// Sunset-cruiser filler panel for the cover grid.
+// Paints a low sports coupe in profile on a palm-lined coast road,
+// set against an oversized setting sun.
 import { seededRandom } from '../grade/effects.js';
 import { drawPalm, drawSunDisc } from '../grade/scenery.js';
 import { paintSky, strokeNeon } from './sceneKit.js';

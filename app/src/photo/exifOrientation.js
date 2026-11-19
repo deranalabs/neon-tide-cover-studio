@@ -1,4 +1,6 @@
-// Reads a JPEG's EXIF orientation (1..8) and its stored pixel size by walking the markers by hand, no library.
+// Minimal JPEG parser with no dependencies.
+// Walks the file's markers by hand to read the EXIF orientation (1..8)
+// and the stored pixel width and height.
 
 /** Returns { orientation, width, height } from a JPEG's bytes; orientation 1 and size 0 when absent. */
 export function readJpegInfo(buffer) {

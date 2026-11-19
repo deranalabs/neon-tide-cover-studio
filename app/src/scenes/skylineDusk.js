@@ -1,4 +1,6 @@
-// Painted filler panel: a downtown skyline at dusk, sun sinking between towers, lit windows mirrored in the bay.
+// Skyline-at-dusk filler panel for the cover grid.
+// Paints a gradient sky, stars and a striped sun setting between towers,
+// with lit windows reflected in the bay below the horizon.
 import { seededRandom } from '../grade/effects.js';
 import { drawPalm, drawSunDisc } from '../grade/scenery.js';
 import { paintCityRow, paintCloudStreaks, paintSky, paintStars, paintWater } from './sceneKit.js';

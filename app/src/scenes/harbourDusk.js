@@ -1,4 +1,6 @@
-// Painted filler panel: a harbour at dusk with moored boats, a lighthouse beam, pier posts and rippling water.
+// Harbour-at-dusk filler panel for the cover grid.
+// Paints moored sailboat silhouettes, a sweeping lighthouse beam,
+// pier posts and rippling water under a dusk sky.
 import { seededRandom } from '../grade/effects.js';
 import { drawSunDisc } from '../grade/scenery.js';
 import { paintCloudStreaks, paintSky, paintStars, paintWater } from './sceneKit.js';

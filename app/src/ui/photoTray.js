@@ -1,5 +1,6 @@
-// The Photos section: file picker, drop anywhere on the page, a tray of thumbnails (click to place in the selected
-// panel, drag onto any panel, × to remove) and the Auto-fill button.
+// Photos section of the editor: file picker, page-wide drop target and the Auto-fill button.
+// Shows a thumbnail tray: click a thumb to place it in the selected panel,
+// drag it onto any panel, or press × to remove it.
 
 /** Wires the section; `app` gives { addFiles, autoFill, placePhoto, removePhoto, selected }. Returns renderTray. */
 export function bindPhotoTray(app) {

@@ -1,4 +1,6 @@
-// Painted filler panel: a night horizon with a banded sun, glowing ridgelines and a neon grid floor.
+// Neon-grid filler panel for the cover grid.
+// Paints a night sky with a banded sun, jagged glowing ridgelines
+// and a perspective neon grid floor running to the horizon.
 import { seededRandom } from '../grade/effects.js';
 import { drawPalm, drawSunDisc } from '../grade/scenery.js';
 import { paintSky, paintStars, strokeNeon } from './sceneKit.js';

@@ -1,4 +1,6 @@
-// Polygon helpers for panels: scaling to pixels, bounding boxes, hit tests and canvas paths.
+// Geometry helpers for cover panels defined as normalised polygons.
+// Scales them to pixels, computes bounding boxes, runs point hit tests
+// and traces canvas paths for clipping and outlines.
 
 /** Scales a normalised polygon [[x, y], ...] to a w x h cover. */
 export function polygonToPixels(polygon, w, h) {
