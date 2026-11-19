@@ -38,6 +38,7 @@ export function captionPlace(geometry, state) {
     maxWidth: Math.min(w * 0.94, w * anchor.width * scale),
     maxHeight: Math.min(h * 0.3, short * 0.23) * scale,
     short,
+    bounds: { left: geometry.border, right: w - geometry.border, top: geometry.border },
     withTagline: !geometry.banner,
   };
 }
@@ -102,8 +103,9 @@ function drawBannerText(ctx, banner, state) {
   const starsW = state.stars > 0 ? starSize * 1.08 * 5 + banner.h * 0.3 : 0;
   const tagline = state.text.tagline.trim();
   if (tagline) {
-    const room = banner.w - starsW * 2 - banner.h * 0.6;
-    drawTagline(ctx, tagline, banner.x + banner.w / 2, banner.y + banner.h * 0.52, room, banner.h * 0.3);
+    const pad = banner.h * 0.3;
+    const room = banner.w - starsW - pad * 2;
+    drawTagline(ctx, tagline, banner.x + pad + room / 2, banner.y + banner.h * 0.52, room, banner.h * 0.3);
   }
   if (state.stars > 0) {
     drawRatingStars(ctx, banner.x + banner.w - banner.h * 0.3, banner.y + banner.h * 0.52, starSize, state.stars);

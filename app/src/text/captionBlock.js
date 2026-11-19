@@ -61,8 +61,9 @@ export function drawTagline(ctx, tagline, cx, cy, maxWidth, height) {
 }
 
 /**
- * Paints the caption. `place` is { cx, cy, maxWidth, maxHeight, short, withTagline }: the title's centre and box
- * in px, the cover's short side, and whether the tagline goes here (false when the banner carries it).
+ * Paints the caption. `place` is { cx, cy, maxWidth, maxHeight, short, bounds, withTagline }: the title's centre
+ * and box in px, the cover's short side, the edges the badge must stay inside, and whether the tagline goes here
+ * (false when the banner carries it).
  * Returns { box, titleBox } in px.
  */
 export function drawCaptionBlock(ctx, place, text, preset) {
@@ -135,7 +136,11 @@ export function drawCaptionBlock(ctx, place, text, preset) {
   const badge = (text.badge ?? '').trim();
   if (badge && plan.lines.length) {
     const r = Math.min(maxHeight * 0.4, short * 0.09);
-    drawBadge(ctx, titleBox.x + titleBox.w + r * 0.35, titleBox.y + r * 0.1, r, badge, {
+    const right = place.bounds ? place.bounds.right - r * 1.05 : Infinity;
+    const top = place.bounds ? place.bounds.top + r * 1.05 : -Infinity;
+    const bx = Math.min(titleBox.x + titleBox.w + r * 0.35, right);
+    const by = Math.max(titleBox.y + r * 0.1 - (bx < titleBox.x + titleBox.w ? r * 0.7 : 0), top);
+    drawBadge(ctx, bx, by, r, badge, {
       fill: ['#fff7b0', '#ffc21f'],
       ring: '#7a1440',
       outline: '#14031c',

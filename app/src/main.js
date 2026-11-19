@@ -1,12 +1,8 @@
-// Temporary entry while the cover art is tuned: loads the samples and installs the export hook.
-import { loadPhotoFromUrl } from './photo/photoLoader.js';
-import { installShotHooks, shotState } from './ui/shotScenes.js';
+// Entry point: starts the Neon Coast cover editor (a ?shot= query sets up a fixed scene for screenshots).
+import { startEditor } from './ui/editor.js';
 
-const photos = new Map();
-const boulevard = await loadPhotoFromUrl('samples/boulevard.jpg');
-const pier = await loadPhotoFromUrl('samples/pier.jpg');
-photos.set(boulevard.id, boulevard);
-photos.set(pier.id, pier);
-const state = shotState(boulevard.id, pier.id);
-installShotHooks(() => state, photos);
-window.__shotReady = true;
+startEditor(new URLSearchParams(location.search)).catch((error) => {
+  const status = document.getElementById('status');
+  if (status) status.textContent = `Could not start: ${error.message}`;
+  throw error;
+});

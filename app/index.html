@@ -3,21 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover Snap</title>
+<title>Neon Coast Cover Studio</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls">
-    <h1>Cover Snap</h1>
-    <p>A photo and a caption, made into a square cover.</p>
-    <label>Photo <input id="photo" type="file" accept="image/*"></label>
-    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
-    <button id="export" type="button">Export PNG 1080 x 1080</button>
-    <p id="status" role="status"></p>
-  </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover"></canvas>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark" aria-hidden="true"></span><b>Neon Coast</b><span>Cover Studio</span></div>
+  <div class="sizes" id="sizeTabs" role="tablist" aria-label="Cover size">
+    <button type="button" data-size="landscape" role="tab">16:9 <small>1920×1080</small></button>
+    <button type="button" data-size="square" role="tab">1:1 <small>1080×1080</small></button>
+    <button type="button" data-size="portrait" role="tab">4:5 <small>1080×1350</small></button>
+  </div>
+  <div class="actions">
+    <button type="button" id="undo" title="Undo (Ctrl+Z)">Undo</button>
+    <button type="button" id="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+    <button type="button" id="randomise" title="Shuffle layout, grade and crops (R)">Shuffle</button>
+    <button type="button" id="exportOne" class="primary" title="Export this size as PNG (E)">Export PNG</button>
+    <button type="button" id="exportAll" class="primary ghost" title="Export all three sizes (Shift+E)">All 3 sizes</button>
+  </div>
+</header>
+<main class="workspace">
+  <aside class="side left" aria-label="Photos, layout and panel">
+    <section>
+      <h2><i>1</i> Photos</h2>
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*" multiple>
+        <b>Drop photos here</b><span>or click to pick · stays on this computer</span>
+      </label>
+      <div class="tray" id="photoTray"></div>
+      <button type="button" id="autofill" class="wide">Auto-fill all panels</button>
+    </section>
+    <section>
+      <h2><i>2</i> Layout</h2>
+      <div class="layout-grid" id="layoutGrid"></div>
+    </section>
+    <section class="inspector">
+      <h2>Panel <b id="panelLabel">1</b> <small id="panelKind"></small></h2>
+      <label>Shows <select id="panelSource"></select></label>
+      <label class="range">Zoom <input type="range" id="panelZoom" min="1" max="5" step="0.01"></label>
+      <label>Tint <select id="panelTint"></select></label>
+      <div class="row">
+        <button type="button" id="panelFlip" title="Mirror (F)">Flip</button>
+        <button type="button" id="panelReset" title="Reset crop (0)">Reset</button>
+        <button type="button" id="panelSwap" title="Swap with the next panel">Swap ▸</button>
+      </div>
+    </section>
+  </aside>
+  <div class="stage" id="stage">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="preview" aria-label="Live cover preview"></canvas>
+      <canvas id="overlay" aria-hidden="true"></canvas>
+    </div>
+    <p class="hint">Drag a panel to pan · wheel to zoom · Shift+drag onto another panel to swap · drag the title
+      to move it · drop a photo on a panel to place it</p>
+  </div>
+  <aside class="side right" aria-label="Grade and caption">
+    <section>
+      <h2><i>3</i> Grade</h2>
+      <div class="preset-grid" id="presetGrid"></div>
+      <div class="row">
+        <label>Frame <select id="frameSelect"></select></label>
+        <label class="check"><input type="checkbox" id="duotone"> Duotone</label>
+      </div>
+      <div id="gradeSliders" class="sliders"></div>
+    </section>
+    <section>
+      <h2><i>4</i> Caption</h2>
+      <label>Title <input type="text" id="title" maxlength="40"></label>
+      <label>Subtitle <input type="text" id="subtitle" maxlength="48"></label>
+      <label>Tagline <input type="text" id="tagline" maxlength="64"></label>
+      <div class="row">
+        <label>Badge <input type="text" id="badge" maxlength="12"></label>
+        <label>Letters <select id="letterStyle"></select></label>
+      </div>
+      <label class="range">Size <input type="range" id="textScale" min="0.4" max="1.6" step="0.01"></label>
+      <label class="range">Stars <input type="range" id="stars" min="0" max="5" step="1"></label>
+      <div class="row checks">
+        <label class="check"><input type="checkbox" id="banner"> Banner</label>
+        <label class="check"><input type="checkbox" id="ribbon"> Ribbon</label>
+        <label class="check"><input type="checkbox" id="emblem"> Sun emblem</label>
+      </div>
+      <button type="button" id="centreText" class="wide">Re-centre caption</button>
+    </section>
+  </aside>
 </main>
+<footer class="statusbar">
+  <span id="status" role="status">Ready</span>
+  <span class="keys">E export · R shuffle · 1 2 3 size · [ ] layout · P preset · F flip · Ctrl+Z undo</span>
+</footer>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
