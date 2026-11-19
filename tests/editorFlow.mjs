@@ -54,7 +54,9 @@ try {
     const s = r.width / g.w;
     return [r.left + cx * s, r.top + cy * s];
   })()`);
-  const mouse = (type, [x, y], extra = {}) => send('Input.dispatchMouseEvent', { type, x, y, button: 'left', ...extra });
+  const mouse = (type, [x, y], extra = {}) => send('Input.dispatchMouseEvent', {
+    type, x, y, button: 'left', ...extra,
+  });
   const drag = async (from, to, modifiers = 0) => {
     await mouse('mouseMoved', from, { modifiers });
     await mouse('mousePressed', from, { clickCount: 1, buttons: 1, modifiers });

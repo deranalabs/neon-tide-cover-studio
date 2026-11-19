@@ -55,7 +55,8 @@ try {
       if (keepPng) writeFileSync(join(pngDir, `${shot.name.replace(/\.\w+$/, '')}-${w}x${h}.png`), decode(png));
       const [fw, fh] = shot.fit;
       jpeg = await chrome.evaluate(`(${FIT_JPEG})(${JSON.stringify(png)}, ${fw}, ${fh}, ${MAX_BYTES})`);
-      console.log(`${shot.name}: exported ${w}x${h} PNG in ${ms} ms, shown at ${jpeg.w}x${jpeg.h} q${jpeg.q.toFixed(2)}`);
+      const shown = `${jpeg.w}x${jpeg.h} q${jpeg.q.toFixed(2)}`;
+      console.log(`${shot.name}: exported ${w}x${h} PNG in ${ms} ms, shown at ${shown}`);
       jpeg = jpeg.url;
     } else {
       await new Promise((r) => setTimeout(r, 300));

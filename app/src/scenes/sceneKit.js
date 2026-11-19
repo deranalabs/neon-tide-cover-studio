@@ -1,4 +1,4 @@
-// Shared brushes for the painted filler scenes: banded skies, star fields, city blocks with lit windows, glinting water.
+// Shared brushes for the painted filler scenes: skies, stars, city blocks with lit windows, glinting water, neon.
 
 /** Fills [0, bottom) with a vertical gradient through evenly spaced colours. */
 export function paintSky(ctx, w, bottom, colours) {

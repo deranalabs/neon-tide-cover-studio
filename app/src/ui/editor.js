@@ -101,7 +101,8 @@ export async function startEditor(query) {
   };
   /** Loads files; one file dropped on a panel goes there, otherwise every panel is refilled. */
   const addFiles = async (files, panelIndex = -1) => {
-    const images = files.filter((file) => file.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|avif)$/i.test(file.name));
+    const isImage = (file) => file.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|avif)$/i.test(file.name);
+    const images = files.filter(isImage);
     if (!images.length) {
       status('Those files are not images');
       return;

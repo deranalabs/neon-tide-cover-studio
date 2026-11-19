@@ -75,7 +75,7 @@ export function panelLayer(panel, slot, bw, bh, photos, preset, seed, coverW) {
   const sceneMix = preset.duotone ? preset.mapMix : preset.mapMix * 0.22;
   applyGradientMap(image, {
     lut: lutFor(tint, preset.duotone),
-    mapMix: photo ? preset.mapMix : sceneMix,
+    mapMix: photo ? preset.mapMix * (preset.duotone ? 1 : TINTS[tint]?.strength ?? 1) : sceneMix,
     contrast: photo ? preset.contrast : 1.04,
     saturation: photo ? preset.saturation : 1.05,
   });

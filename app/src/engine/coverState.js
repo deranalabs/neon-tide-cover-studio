@@ -53,7 +53,9 @@ export function defaultState() {
 }
 
 const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
-const clampNumber = (value, lo, hi, fallback) => (Number.isFinite(value) ? Math.max(lo, Math.min(hi, value)) : fallback);
+function clampNumber(value, lo, hi, fallback) {
+  return Number.isFinite(value) ? Math.max(lo, Math.min(hi, value)) : fallback;
+}
 
 /** A panel source: { type: 'photo', id } or { type: 'scene', id } or null. */
 function normaliseSource(source) {

@@ -43,21 +43,23 @@ export function captionPlace(geometry, state) {
   };
 }
 
-/** A soft dark band behind the title, inside the panel area, so the letters read over any photo. */
+/** A soft dark ellipse behind the title, inside the panel area, so the letters read over any photo. */
 function drawTitleShade(ctx, geometry, place) {
   const { area } = geometry;
-  const half = place.maxHeight * 1.05;
+  const ry = place.maxHeight * 1.15;
+  const rx = place.maxWidth * 0.62;
   ctx.save();
   ctx.beginPath();
   ctx.rect(area.x, area.y, area.w, area.h);
   ctx.clip();
-  const band = ctx.createLinearGradient(0, place.cy - half, 0, place.cy + half * 1.25);
-  band.addColorStop(0, 'rgba(14, 2, 26, 0)');
-  band.addColorStop(0.45, 'rgba(14, 2, 26, 0.5)');
-  band.addColorStop(0.75, 'rgba(14, 2, 26, 0.55)');
-  band.addColorStop(1, 'rgba(14, 2, 26, 0)');
-  ctx.fillStyle = band;
-  ctx.fillRect(area.x, place.cy - half, area.w, half * 2.25);
+  ctx.translate(place.cx, place.cy + ry * 0.12);
+  ctx.scale(rx / ry, 1);
+  const shade = ctx.createRadialGradient(0, 0, 0, 0, 0, ry);
+  shade.addColorStop(0, 'rgba(14, 2, 26, 0.62)');
+  shade.addColorStop(0.55, 'rgba(14, 2, 26, 0.45)');
+  shade.addColorStop(1, 'rgba(14, 2, 26, 0)');
+  ctx.fillStyle = shade;
+  ctx.fillRect(-ry, -ry, ry * 2, ry * 2);
   ctx.restore();
 }
 

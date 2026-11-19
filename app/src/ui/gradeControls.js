@@ -72,7 +72,9 @@ export function bindGradeControls(app) {
 
   return function sync(state) {
     const resolved = resolvePreset(state);
-    presetButtons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.preset === state.preset)));
+    presetButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.preset === state.preset));
+    });
     frame.value = state.frame ?? '';
     duotone.checked = resolved.duotone;
     for (const [key, input] of inputs) input.value = String(resolved[key]);

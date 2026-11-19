@@ -81,7 +81,7 @@ input[type=range] { accent-color: var(--pink); }
 .dropzone span { color: var(--muted); font-size: 11px; }
 .dropzone input { display: none; }
 body.dragging .dropzone, .dropzone:hover { background: rgba(255, 79, 163, 0.18); }
-.tray { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 8px; }
+.tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 5px; margin-top: 8px; }
 .tray .thumb {
   position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--line);
   cursor: grab; background: #000;
@@ -96,7 +96,7 @@ body.dragging .dropzone, .dropzone:hover { background: rgba(255, 79, 163, 0.18);
   padding: 0 4px; border-radius: 4px;
 }
 
-.layout-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.layout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 5px; }
 .layout-grid button { padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .layout-grid button canvas { width: 100%; height: auto; display: block; }
 .layout-grid button span { font-size: 10px; font-weight: 600; color: var(--muted); }
@@ -138,4 +138,5 @@ body.dragging .dropzone, .dropzone:hover { background: rgba(255, 79, 163, 0.18);
   .topbar { flex-wrap: wrap; }
   .workspace { grid-template-columns: 1fr; }
   .stage { order: -1; min-height: 50vh; }
+  .tray, .layout-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 96px)); }
 }

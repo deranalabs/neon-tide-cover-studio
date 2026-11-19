@@ -1,9 +1,13 @@
 // Colour grade presets: the gradient-map tints panels cycle through, and each preset's effect and frame settings.
 
-/** Gradient maps from shadow to highlight; a panel's tint picks one. */
+/** Gradient maps from shadow to highlight; a panel's tint picks one. `strength` scales the preset's map mix. */
 export const TINTS = {
   flamingo: { label: 'Flamingo', stops: ['#12021c', '#4c0f5e', '#b8236f', '#ff5a5a', '#ff9a4a', '#ffd08a'] },
-  lagoon: { label: 'Lagoon', stops: ['#03101d', '#0a3550', '#127a88', '#38c9bd', '#9ce6dc', '#ddfaf2'] },
+  lagoon: {
+    label: 'Lagoon',
+    strength: 0.62,
+    stops: ['#03101d', '#0a3550', '#127a88', '#38c9bd', '#9ce6dc', '#ddfaf2'],
+  },
   ultraviolet: { label: 'Ultraviolet', stops: ['#0a031f', '#2a0e5e', '#5e27c4', '#b54ff2', '#ffa6ee', '#fff0fd'] },
   ember: { label: 'Ember', stops: ['#180404', '#561206', '#b8351a', '#ff7f2a', '#ffcb72', '#fff5df'] },
   rose: { label: 'Rose', stops: ['#1a0612', '#5a1040', '#c0377a', '#ff86bd', '#ffd6ea', '#fff8fb'] },
@@ -24,7 +28,7 @@ export const PRESETS = {
     tints: ['flamingo', 'lagoon', 'ember', 'ultraviolet', 'flamingo', 'rose', 'lagoon'],
     mapMix: 0.72,
     contrast: 1.26,
-    saturation: 1.15,
+    saturation: 1.3,
     duotone: false,
     bloom: 0.45,
     grain: 0.07,

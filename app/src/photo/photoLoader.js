@@ -69,7 +69,8 @@ export async function loadPhoto(blob, name = 'photo') {
   bitmap.close();
   counter += 1;
   const id = `p${counter}`;
-  return { id, name, image: canvas, width: outW, height: outH, key: `${id}:${outW}x${outH}`, thumb: thumbnailOf(canvas) };
+  const key = `${id}:${outW}x${outH}`;
+  return { id, name, image: canvas, width: outW, height: outH, key, thumb: thumbnailOf(canvas) };
 }
 
 /** Fetches an image bundled with the app (the samples) and loads it like a dropped file. */
