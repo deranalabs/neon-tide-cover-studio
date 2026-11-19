@@ -244,6 +244,7 @@ export async function startEditor(query) {
     photoImage: (id) => photos.get(id)?.image ?? null,
     geometry: () => preview.last?.geometry,
     selected: () => selected,
+    renderMs: () => preview.lastMs,
   };
   preview.render(state, photos);
   preview.mark({ selected, numbers: shot === 'editor' });

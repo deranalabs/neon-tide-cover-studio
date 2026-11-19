@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { crc32, deflateSync } from 'node:zlib';
 import { launchChrome, REPO, serveApp } from './chromeDriver.mjs';
 
 const outDir = join(REPO, 'tests', 'out');
@@ -29,6 +30,32 @@ function rotatedSample() {
   header.writeUInt16BE(exif.length + 2, 2);
   const file = join(outDir, 'turned-boulevard.jpg');
   writeFileSync(file, Buffer.concat([jpeg.subarray(0, 2), header, exif, jpeg.subarray(2)]));
+  return file;
+}
+
+/** A big gradient PNG (w x h) written with zlib, to check that huge photos are downscaled on load. */
+function hugePng(w, h) {
+  const row = Buffer.alloc(1 + w * 3);
+  const rows = [];
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) row.set([(x * 255) / w, (y * 255) / h, 160], 1 + x * 3);
+    rows.push(Buffer.from(row));
+  }
+  const chunk = (type, data) => {
+    const head = Buffer.alloc(8);
+    head.writeUInt32BE(data.length, 0);
+    head.write(type, 4, 'latin1');
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])), 0);
+    return Buffer.concat([head, data, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  const file = join(outDir, 'huge.png');
+  writeFileSync(file, Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(Buffer.concat(rows))), chunk('IEND', Buffer.alloc(0))]));
   return file;
 }
 
@@ -166,6 +193,16 @@ try {
   await chrome.navigate(server.url);
   assert.equal(await editor('e.state().text.title'), 'Harbor Kings');
   step('settings survive a reload (kept in this browser only)');
+
+  await send('DOM.setFileInputFiles', { nodeId: (await send('DOM.querySelector', {
+    nodeId: (await send('DOM.getDocument', {})).root.nodeId, selector: '#fileInput' })).nodeId,
+  files: [hugePng(5600, 4200)] });
+  for (let i = 0; i < 100 && (await editor('e.photos().length')) < 2; i += 1) await wait(100);
+  const huge = (await editor('e.photos()')).at(-1);
+  assert.deepEqual([huge.width, huge.height], [2400, 1800], 'downscaled to 2400 on the long side');
+  await wait(400);
+  const renderMs = await editor('e.renderMs()');
+  step(`a 5600x4200 photo loads downscaled to 2400x1800; preview redraw ${renderMs.toFixed(0)} ms`);
 
   const problems = chrome.logs.filter((line) => /^(exception|error)/.test(line));
   assert.deepEqual(problems, [], 'no console errors');
