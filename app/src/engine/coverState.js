@@ -18,9 +18,18 @@ export const EXPORT_SIZES = [
   { id: 'portrait', label: '4:5', w: 1080, h: 1350 },
 ];
 
-/** A fresh panel slot: no source yet (auto-fill decides), default crop, the preset's tint. */
+/** Longest panel label tag, in characters. */
+export const PANEL_LABEL_MAX = 18;
+
+/** A panel's label tag ("THE DRIVER"): any value turned into upper-case text of at most 18 characters. */
+export function normalisePanelLabel(value) {
+  if (typeof value !== 'string' && typeof value !== 'number') return '';
+  return String(value).replace(/\s+/g, ' ').trimStart().toUpperCase().slice(0, PANEL_LABEL_MAX);
+}
+
+/** A fresh panel slot: no source yet (auto-fill decides), default crop, the preset's tint, no label. */
 export function emptyPanel() {
-  return { source: null, crop: defaultCrop(), tint: null };
+  return { source: null, crop: defaultCrop(), tint: null, label: '' };
 }
 
 /** The state a new cover starts with. */
@@ -47,7 +56,7 @@ export function defaultState() {
       offsetX: 0,
       offsetY: 0,
       emblem: false,
-      ribbon: true,
+      ribbon: false,
     },
   };
 }
@@ -82,6 +91,7 @@ export function normaliseState(raw) {
         flip: Boolean(crop.flip),
       },
       tint: TINTS[panel.tint] ? panel.tint : null,
+      label: normalisePanelLabel(panel.label),
     };
   });
   const grade = {};
@@ -110,7 +120,7 @@ export function normaliseState(raw) {
       offsetX: clampNumber(text.offsetX, -0.5, 0.5, 0),
       offsetY: clampNumber(text.offsetY, -0.6, 0.4, 0),
       emblem: Boolean(text.emblem),
-      ribbon: text.ribbon !== false,
+      ribbon: text.ribbon === true,
     },
   };
 }

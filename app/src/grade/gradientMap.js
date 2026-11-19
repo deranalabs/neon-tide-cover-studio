@@ -41,10 +41,11 @@ function contrastCurve(contrast) {
  * Grades ImageData in place. `lut` from buildGradientLut; `mapMix` 0..1 how much the map replaces the colour;
  * `contrast` and `saturation` shape the photo first.
  */
-export function applyGradientMap(imageData, { lut, mapMix, contrast, saturation }) {
+export function applyGradientMap(imageData, { lut, mapMix, contrast, saturation, splitTone = 0.65 }) {
   const data = imageData.data;
   const curve = contrastCurve(contrast);
   const keep = 1 - mapMix;
+  const split = splitToneTables(splitTone);
   for (let i = 0; i < data.length; i += 4) {
     let r = data[i];
     let g = data[i + 1];
@@ -57,9 +58,27 @@ export function applyGradientMap(imageData, { lut, mapMix, contrast, saturation 
     const graded = curve[index];
     const lift = lum > 0 ? (graded * 255) / lum : 1;
     const mapIndex = Math.round(graded * 255) * 3;
-    data[i] = r * lift * keep + lut[mapIndex] * mapMix;
-    data[i + 1] = g * lift * keep + lut[mapIndex + 1] * mapMix;
-    data[i + 2] = b * lift * keep + lut[mapIndex + 2] * mapMix;
+    const tone = Math.round(graded * 255) * 3;
+    data[i] = r * lift * keep + lut[mapIndex] * mapMix + split[tone];
+    data[i + 1] = g * lift * keep + lut[mapIndex + 1] * mapMix + split[tone + 1];
+    data[i + 2] = b * lift * keep + lut[mapIndex + 2] * mapMix + split[tone + 2];
   }
   return imageData;
+}
+
+/**
+ * The split-tone offsets per graded tone (256 x RGB): violet pushed into the shadows, warm amber-pink into the
+ * highlights, the mid-tones left alone so skin and sky stay clean rather than muddy.
+ */
+function splitToneTables(strength) {
+  const table = new Float32Array(256 * 3);
+  for (let i = 0; i < 256; i += 1) {
+    const t = i / 255;
+    const shadow = Math.pow(1 - t, 2.2) * strength;
+    const light = Math.pow(t, 1.8) * strength;
+    table[i * 3] = 22 * shadow + 34 * light;
+    table[i * 3 + 1] = -12 * shadow + 8 * light;
+    table[i * 3 + 2] = 46 * shadow - 30 * light;
+  }
+  return table;
 }

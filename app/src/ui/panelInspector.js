@@ -1,7 +1,7 @@
 // The Layout picker (thumbnail of every layout for the current aspect) and the selected panel's controls:
-// what it shows (any photo or painted scene), zoom, tint, flip, reset and swap.
+// what it shows (any photo or painted scene), zoom, tint, its label tag, flip, reset and swap.
 import { LAYOUTS, layoutPanels } from '../engine/layouts.js';
-import { EXPORT_SIZES } from '../engine/coverState.js';
+import { EXPORT_SIZES, normalisePanelLabel, PANEL_LABEL_MAX } from '../engine/coverState.js';
 import { tracePolygon } from '../engine/panelGeometry.js';
 import { TINTS } from '../grade/presets.js';
 import { SCENES } from '../scenes/sceneCatalog.js';
@@ -62,6 +62,24 @@ export function bindPanelInspector(app) {
     });
     grid.append(button);
     return button;
+  });
+
+  const tagField = document.createElement('label');
+  const tagInput = document.createElement('input');
+  tagInput.type = 'text';
+  tagInput.id = 'panelTag';
+  tagInput.maxLength = PANEL_LABEL_MAX;
+  tagInput.placeholder = 'e.g. THE DRIVER';
+  tagField.append('Panel label', tagInput);
+  tint.closest('label').after(tagField);
+  let tagTimer = 0;
+  tagInput.addEventListener('input', () => {
+    const index = app.selected();
+    app.update((draft) => {
+      draft.panels[index].label = normalisePanelLabel(tagInput.value);
+    }, { commit: false });
+    clearTimeout(tagTimer);
+    tagTimer = setTimeout(() => app.commit(), 600);
   });
 
   tint.append(new Option('Preset cycle', ''));
@@ -126,5 +144,6 @@ export function bindPanelInspector(app) {
     zoom.disabled = !isPhoto;
     zoom.value = String(panel.crop.zoom);
     tint.value = panel.tint ?? '';
+    if (document.activeElement !== tagInput) tagInput.value = panel.label ?? '';
   };
 }

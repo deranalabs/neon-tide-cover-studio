@@ -4,7 +4,6 @@ import { normaliseState } from '../engine/coverState.js';
 import { renderCoverPng } from './exportCover.js';
 
 const photo = (id) => ({ type: 'photo', id });
-const scene = (id) => ({ type: 'scene', id });
 const crop = (zoom, fx, fy, flip = false) => ({ zoom, fx, fy, flip });
 
 /** The hand-placed cover every shot uses; `boulevard` and `pier` are the loaded sample photo ids. */
@@ -16,19 +15,26 @@ export function shotState(boulevard, pier) {
     stars: 4,
     seed: 7,
     panels: [
-      { source: photo(boulevard), crop: crop(1, 0.55, 0.3), tint: 'flamingo' },
-      { source: photo(pier), crop: crop(1.22, 0.45, 0.3), tint: 'lagoon' },
-      { source: scene('neonGrid'), crop: crop(1, 0.5, 0.5) },
-      { source: photo(boulevard), crop: crop(2.6, 0.58, 0.2), tint: 'ultraviolet' },
-      { source: scene('cruiser'), crop: crop(1, 0.5, 0.5) },
-      { source: scene('skyline'), crop: crop(1, 0.5, 0.5) },
-      { source: photo(pier), crop: crop(2, 0.8, 0.6), tint: 'ultraviolet' },
+      // Hero: the woman leaning on the convertible, palms and the low sun behind her.
+      { source: photo(boulevard), crop: crop(1, 0.55, 0.06), tint: 'ember', label: 'The Driver' },
+      // A tight face crop of the man on the pier.
+      { source: photo(pier), crop: crop(1.5, 0.29, 0.18), tint: 'rose', label: 'The Angler' },
+      // The chrome mirror and red paint of the car (mostly behind the title).
+      { source: photo(boulevard), crop: crop(2.6, 0, 0.8), tint: 'ultraviolet' },
+      // The lifeguard tower and the beach under the sun.
+      { source: photo(boulevard), crop: crop(3, 0.18, 0.29), tint: 'flamingo', label: 'One Last Summer' },
+      // The sea, the rod and the pier rail.
+      { source: photo(pier), crop: crop(1.8, 1, 0.55), tint: 'lagoon', label: 'Low Tide' },
+      // A palm row against the sunset sky (shown by six- and seven-panel layouts).
+      { source: photo(boulevard), crop: crop(2, 1, 0.05), tint: 'flamingo' },
+      { source: photo(pier), crop: crop(2.4, 0.9, 0.7), tint: 'ultraviolet' },
     ],
     text: {
       title: 'Neon Tide',
       subtitle: 'Salt Air Stories',
-      tagline: 'Coming soon • Summer nights',
+      tagline: 'Coming soon',
       badge: 'New',
+      ribbon: false,
     },
   });
 }

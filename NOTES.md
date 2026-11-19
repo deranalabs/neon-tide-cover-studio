@@ -27,6 +27,7 @@ http://localhost:8080.
   bearings stop open letters (E, L, T…) reading as word gaps. The title is auto-fitted on one or two lines. Five
   letter styles. The subtitle sits on a folded ribbon, the tagline is in spaced capitals, and there are a starburst
   badge, a wanted-style star row and an optional sun-and-palms emblem.
+- **Panel labels and neon script**: each panel can carry a short label ("THE DRIVER", upper-cased, at most 18 characters, set in the panel inspector) drawn as a small tilted white tag in its lower-left corner and left out where the caption covers it; the subtitle defaults to the new glowing Neon Script letter style (the ribbon stays one checkbox away).
 - **Photos** (`app/src/photo/`): picker and drag-and-drop of several files at once. The EXIF orientation is read by
   hand and applied once (skipped if the browser already turned the picture). Photos are downscaled to 2400 px on the
   long side. One photo can fill several panels with different crops, and painted scenes fill the gaps when there are

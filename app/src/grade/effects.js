@@ -26,7 +26,7 @@ export function applyBloom(ctx, w, h, strength) {
   const d = image.data;
   for (let i = 0; i < d.length; i += 4) {
     const lum = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
-    const k = Math.pow(Math.max(0, (lum - 0.55) / 0.45), 1.4);
+    const k = Math.pow(Math.max(0, (lum - 0.5) / 0.5), 1.3);
     d[i] *= k;
     d[i + 1] *= k;
     d[i + 2] *= k;
@@ -107,6 +107,26 @@ export function drawVignette(ctx, x, y, w, h, strength) {
   ctx.save();
   ctx.fillStyle = gradient;
   ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
+/**
+ * A low-sun glow at (x, y): a hot cream core fading through orange and pink, screened over the panels so the
+ * photos read as shot into a sunset.
+ */
+export function drawSunGlow(ctx, x, y, radius, strength) {
+  if (strength <= 0) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = Math.min(1, strength);
+  const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+  glow.addColorStop(0, 'rgba(255, 246, 214, 0.95)');
+  glow.addColorStop(0.08, 'rgba(255, 214, 140, 0.8)');
+  glow.addColorStop(0.3, 'rgba(255, 140, 70, 0.42)');
+  glow.addColorStop(0.62, 'rgba(255, 70, 130, 0.16)');
+  glow.addColorStop(1, 'rgba(160, 40, 160, 0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
   ctx.restore();
 }
 

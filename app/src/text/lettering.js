@@ -68,9 +68,9 @@ function paintFace(ctx, built, style, scale, x, y) {
   const layer = new OffscreenCanvas(Math.max(1, layerW), Math.max(1, layerH));
   const lc = layer.getContext('2d');
   lc.setTransform(scale, 0, 0, scale, margin, margin);
-  lc.lineJoin = 'miter';
+  lc.lineJoin = style.round ? 'round' : 'miter';
   lc.miterLimit = 2.5;
-  lc.lineCap = 'butt';
+  lc.lineCap = style.round ? 'round' : 'butt';
   lc.lineWidth = built.pen;
   lc.strokeStyle = verticalGradient(lc, style.face, 0, built.height);
   lc.stroke(built.path);
@@ -100,9 +100,9 @@ export function paintLettering(ctx, built, style, scale, x, y) {
   const { outline, rim, edge } = styleReach(style);
   const pen = built.pen;
   ctx.save();
-  ctx.lineJoin = 'miter';
+  ctx.lineJoin = style.round ? 'round' : 'miter';
   ctx.miterLimit = 2.5;
-  ctx.lineCap = 'butt';
+  ctx.lineCap = style.round ? 'round' : 'butt';
   const base = ctx.getTransform();
   const at = (dx, dy) => {
     ctx.setTransform(base);

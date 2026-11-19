@@ -22,6 +22,7 @@ Then open http://localhost:8080 (Node 22+). Fastest path: drop photos onto the p
 - **Panels:** each panel is a photo crop (focus point, zoom 1–5, flip) or one of five painted scenes: skyline at dusk, neon grid, harbour, coast-road coupe, halftone burst.
 - **Grades:** six presets (Dusk Drive, Neon Nights, Flamingo Hour, Harbor Noon, Mono Pink, Teal Tide). Sliders for gradient map, duotone, contrast, saturation, sky wash, bloom, halftone, grain, vignette, lens flare, sun disc, palms and neon bars override the preset.
 - **Caption controls:** title auto-fitted on one or two lines in five letter styles, a ribbon subtitle, a spaced tagline, a starburst badge, a star rating row and an optional sun-and-palms emblem. Drag the title to move it.
+- **Panel labels and neon script:** give any panel a short label tag such as THE DRIVER (upper-cased, up to 18 characters) drawn as a tilted white tag in its corner; the subtitle glows in the new Neon Script style, or sits on the ribbon if you tick it.
 - **Export sizes:** PNG at 1920×1080, 1080×1080 or 1080×1350 (E for the current size, Shift+E for all three), saved as `<title>-<w>x<h>.png`.
 - **Editing:** drag-and-drop of several photos, pan by dragging, wheel zoom, Shift+drag to swap panels, Shuffle (R), and undo/redo with 100 steps.
 - **Privacy:** photos are decoded on your computer and never uploaded. Only settings are kept in localStorage; photos are not stored.

@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LAYOUTS, LAYOUT_IDS, layoutPanels } from '../app/src/engine/layouts.js';
 import { autoFillPanels } from '../app/src/engine/autoFill.js';
-import { defaultState, normaliseState, PANEL_SLOTS } from '../app/src/engine/coverState.js';
+import { defaultState, normalisePanelLabel, normaliseState, PANEL_SLOTS } from '../app/src/engine/coverState.js';
 import { cropVariant, panCrop, sourceRect, zoomCrop } from '../app/src/photo/panelCrop.js';
 import { readJpegInfo, swapsSides } from '../app/src/photo/exifOrientation.js';
 import { EditHistory } from '../app/src/ui/history.js';
@@ -128,6 +128,18 @@ test('state repair turns junk into a complete, valid state', () => {
   assert.equal(repaired.text.title, '42');
   assert.equal(repaired.text.scale, 0.4);
   assert.deepEqual(normaliseState(normaliseState(null)), normaliseState(null), 'idempotent');
+});
+
+test('panel labels are upper-case strings of at most 18 characters, empty by default', () => {
+  assert.equal(normalisePanelLabel('the driver'), 'THE DRIVER');
+  assert.equal(normalisePanelLabel('one last summer in the keys'), 'ONE LAST SUMMER IN');
+  assert.equal(normalisePanelLabel(null), '');
+  assert.equal(normalisePanelLabel(7), '7');
+  assert.equal(defaultState().panels[0].label, '');
+  const repaired = normaliseState({ panels: [{ label: 'angler' }, { label: { x: 1 } }] });
+  assert.equal(repaired.panels[0].label, 'ANGLER');
+  assert.equal(repaired.panels[1].label, '', 'an object is not a label');
+  assert.equal(repaired.panels[2].label, '');
 });
 
 test('auto-fill: one photo fills several panels with different crops; none gives scenes', () => {

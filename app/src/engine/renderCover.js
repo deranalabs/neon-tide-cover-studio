@@ -1,13 +1,16 @@
 // The one render path: draws a whole cover at any size from state and photos, for the live preview and for export.
-// Order: frame, graded panels, title shade, gutters, banner strip, bloom and flare, caption, stars, final grain.
+// Order: frame, graded panels, title shade, gutters, banner strip, sun glow, bloom and flare, caption, panel label
+// tags, stars, final grain.
 import { aspectOf, layoutAnchor, layoutPanels } from './layouts.js';
 import { polygonBounds, tracePolygon } from './panelGeometry.js';
 import { panelLayer } from './panelPainter.js';
 import { resolvePreset } from './coverState.js';
-import { applyBloom, applyPrintTexture, drawLensFlare } from '../grade/effects.js';
+import { applyBloom, applyPrintTexture, drawLensFlare, drawSunGlow } from '../grade/effects.js';
 import { paintBannerStrip } from '../scenes/bannerStrip.js';
 import { drawCaptionBlock, drawTagline } from '../text/captionBlock.js';
 import { drawRatingStars } from '../text/ratingStars.js';
+import { buildTextPath, drawFittedLine } from '../text/lettering.js';
+import { SMALL_STYLES } from '../text/letterStyles.js';
 
 const BANNER_SHARE = { landscape: 0.15, square: 0.13, portrait: 0.11 };
 
@@ -36,7 +39,7 @@ export function captionPlace(geometry, state) {
     cx: area.x + area.w * anchor.x + w * state.text.offsetX,
     cy: area.y + area.h * anchor.y + h * state.text.offsetY,
     maxWidth: Math.min(w * 0.94, w * anchor.width * scale),
-    maxHeight: Math.min(h * 0.3, short * 0.23) * scale,
+    maxHeight: Math.min(h * 0.4, short * 0.36) * scale,
     short,
     bounds: { left: geometry.border, right: w - geometry.border, top: geometry.border },
     withTagline: !geometry.banner,
@@ -114,6 +117,63 @@ function drawBannerText(ctx, banner, state) {
   }
 }
 
+/** The leftmost and rightmost x where the horizontal line at y crosses a convex polygon. */
+function polygonSpanAt(polygon, y) {
+  let lo = Infinity;
+  let hi = -Infinity;
+  polygon.forEach(([x0, y0], i) => {
+    const [x1, y1] = polygon[(i + 1) % polygon.length];
+    if (y0 === y1 || y < Math.min(y0, y1) || y > Math.max(y0, y1)) return;
+    const x = x0 + ((y - y0) / (y1 - y0)) * (x1 - x0);
+    lo = Math.min(lo, x);
+    hi = Math.max(hi, x);
+  });
+  return [lo, hi];
+}
+
+const TAG_TILT = -0.05;
+const TAG_TEXT = { pen: 2.6, tracking: 1.2, italic: 0.06 };
+
+/**
+ * A panel's label ("THE DRIVER") as a small, slightly tilted white tag with bold black letters and a thin dark
+ * outline, inside the panel's lower-left corner. Sized from the cover's short side; it is kept inside the panel's
+ * slanted edges (tilt included) and its letters shrink when the panel is narrow, so it is never clipped. A tag
+ * that would sit under the caption's `avoid` boxes is left out rather than drawn half hidden.
+ */
+function drawPanelLabel(ctx, panel, label, geometry, avoid = []) {
+  const { short, gutter } = geometry;
+  const tagH = Math.max(12, short * 0.044);
+  const pad = gutter / 2 + tagH * 0.5;
+  const textH = tagH * 0.6;
+  const built = buildTextPath(label, TAG_TEXT);
+  const wanted = (built.width / built.height) * textH + tagH * 0.9;
+  const bottom = panel.bounds.y + panel.bounds.h - pad;
+  const top = bottom - tagH - Math.abs(Math.sin(TAG_TILT)) * wanted;
+  const [leftTop, rightTop] = polygonSpanAt(panel.polygon, top);
+  const [leftBottom, rightBottom] = polygonSpanAt(panel.polygon, bottom);
+  const left = Math.max(leftTop, leftBottom) + pad;
+  const room = Math.min(rightTop, rightBottom) - pad - left;
+  if (!(room > tagH * 2.5) || top < panel.bounds.y) return;
+  const tagW = Math.min(wanted, room);
+  const hidden = avoid.some((box) => left < box.x + box.w && left + tagW > box.x && top < box.y + box.h
+    && bottom > box.y);
+  if (hidden) return;
+  const line = Math.max(1, short * 0.0024);
+  ctx.save();
+  ctx.translate(left + tagW / 2, (top + bottom) / 2);
+  ctx.rotate(TAG_TILT);
+  ctx.fillStyle = 'rgba(10, 4, 18, 0.55)';
+  ctx.fillRect(-tagW / 2 + tagH * 0.09, -tagH / 2 + tagH * 0.11, tagW, tagH);
+  ctx.fillStyle = '#fbf8f1';
+  ctx.fillRect(-tagW / 2, -tagH / 2, tagW, tagH);
+  ctx.strokeStyle = '#0a0610';
+  ctx.lineWidth = line;
+  ctx.strokeRect(-tagW / 2 + line / 2, -tagH / 2 + line / 2, tagW - line, tagH - line);
+  drawFittedLine(ctx, label, { cx: 0, cy: 0, maxWidth: tagW - tagH * 0.7, maxHeight: textH, style: SMALL_STYLES.panelTag,
+    ...TAG_TEXT });
+  ctx.restore();
+}
+
 /**
  * Renders the cover into a 2D context of size w x h. `photos` is a Map of id -> { image, width, height, key }.
  * Returns { geometry, caption } for hit-testing in the editor.
@@ -143,11 +203,22 @@ export function renderCover(ctx, w, h, state, photos) {
   if (state.text.title.trim()) drawTitleShade(ctx, geometry, place);
   drawFrame(ctx, geometry, frame);
   if (geometry.banner) paintBannerStrip(ctx, geometry.banner, preset, state.seed);
-  applyBloom(ctx, w, h, preset.bloom);
   const { area } = geometry;
-  drawLensFlare(ctx, area.x + area.w * 0.1, area.y + area.h * 0.2, geometry.short * 0.32, preset.flare,
-    area.x + area.w * 0.6, area.y + area.h * 0.7);
+  const sunX = area.x + area.w * (geometry.aspect === 'landscape' ? 0.06 : 0.1);
+  const sunY = area.y + area.h * (geometry.aspect === 'portrait' ? 0.16 : 0.3);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(area.x, area.y, area.w, area.h);
+  ctx.clip();
+  drawSunGlow(ctx, sunX, sunY, geometry.short * 0.46, preset.flare * 0.7);
+  ctx.restore();
+  applyBloom(ctx, w, h, preset.bloom);
+  drawLensFlare(ctx, sunX, sunY, geometry.short * 0.32, preset.flare, area.x + area.w * 0.6, area.y + area.h * 0.7);
   const caption = drawCaptionBlock(ctx, place, state.text, preset);
+  for (const panel of geometry.panels) {
+    const label = (state.panels[panel.index]?.label ?? '').trim();
+    if (label) drawPanelLabel(ctx, panel, label, geometry, caption.parts);
+  }
   if (geometry.banner) drawBannerText(ctx, geometry.banner, state);
   applyPrintTexture(ctx, w, h, { halftone: 0, grain: preset.grain * 0.45, seed: state.seed + 101 });
   ctx.restore();

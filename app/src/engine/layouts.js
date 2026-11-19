@@ -120,8 +120,8 @@ const at = (x, y, width = 0.84) => ({ x, y, width });
 
 /** Layout catalogue in the order the editor lists it, with the default caption anchor per aspect. */
 export const LAYOUTS = [
-  { id: 'poster', label: 'Poster 1+4', anchor: { landscape: at(0.42, 0.73, 0.64), square: at(0.5, 0.74),
-    portrait: at(0.5, 0.56) } },
+  { id: 'poster', label: 'Poster 1+4', anchor: { landscape: at(0.44, 0.69, 0.78), square: at(0.5, 0.66, 0.86),
+    portrait: at(0.5, 0.56, 0.88) } },
   { id: 'hero', label: 'Hero', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.76) } },
   { id: 'split', label: 'Split', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.5) } },
   { id: 'stack', label: 'Stack', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.7) } },
