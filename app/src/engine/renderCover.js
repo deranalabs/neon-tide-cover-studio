@@ -11,6 +11,7 @@ import { drawSunDisc } from '../grade/scenery.js';
 import { paintBannerStrip } from '../scenes/bannerStrip.js';
 import { drawCaptionBlock, drawTagline } from '../text/captionBlock.js';
 import { drawRatingStars } from '../text/ratingStars.js';
+import { creditsLine, drawBarcode, drawTopStrip, PANEL_ACCENTS } from '../text/posterFurniture.js';
 import { buildTextPath, drawFittedLine } from '../text/lettering.js';
 import { SMALL_STYLES } from '../text/letterStyles.js';
 
@@ -23,13 +24,17 @@ export function coverGeometry(w, h, state) {
   const border = Math.round(short * 0.02);
   const gutter = Math.max(2, Math.round(short * 0.009));
   const bannerH = state.banner ? Math.round(h * BANNER_SHARE[aspect]) : 0;
-  const area = { x: border, y: border, w: w - border * 2, h: h - border * 2 - (bannerH ? bannerH + gutter : 0) };
+  // The thin top strip (critic stars and press quote) comes with the banner, as poster furniture.
+  const stripH = state.banner ? Math.round(short * 0.056) : 0;
+  const top = border + (stripH ? stripH + gutter : 0);
+  const area = { x: border, y: top, w: w - border * 2, h: h - top - border - (bannerH ? bannerH + gutter : 0) };
   const banner = bannerH ? { x: border, y: area.y + area.h + gutter, w: area.w, h: bannerH } : null;
+  const strip = stripH ? { x: border, y: border, w: area.w, h: stripH } : null;
   const panels = layoutPanels(state.layout, aspect).map((unit, index) => {
     const polygon = unit.map(([x, y]) => [area.x + x * area.w, area.y + y * area.h]);
     return { index, polygon, bounds: polygonBounds(polygon) };
   });
-  return { w, h, aspect, short, border, gutter, area, banner, panels };
+  return { w, h, aspect, short, border, gutter, area, banner, strip, panels };
 }
 
 /** The caption placement in px for this geometry and the person's offset and scale. */
@@ -45,6 +50,7 @@ export function captionPlace(geometry, state) {
     short,
     bounds: { left: geometry.border, right: w - geometry.border, top: geometry.border },
     withTagline: !geometry.banner,
+    taglineRibbon: Boolean(geometry.banner),
   };
 }
 
@@ -100,15 +106,22 @@ function drawFrame(ctx, geometry, frame, neon = '#ff3d9a') {
   ctx.restore();
 }
 
-/** The banner's words: the tagline across its middle and the rating stars at its right end. */
+/**
+ * The banner's small print: a drawn barcode at its left end, the credits line (built from the title) across its
+ * middle and the rating stars at its right end. The tagline rides on a ribbon under the title instead.
+ */
 function drawBannerText(ctx, banner, state) {
   const starSize = banner.h * 0.42;
   const starsW = state.stars > 0 ? starSize * 1.08 * 5 + banner.h * 0.3 : 0;
-  const tagline = state.text.tagline.trim();
-  if (tagline) {
-    const pad = banner.h * 0.3;
-    const room = banner.w - starsW - pad * 2;
-    drawTagline(ctx, tagline, banner.x + pad + room / 2, banner.y + banner.h * 0.52, room, banner.h * 0.3);
+  const pad = banner.h * 0.3;
+  const codeH = banner.h * 0.62;
+  const codeW = codeH * 1.45;
+  drawBarcode(ctx, banner.x + pad, banner.y + (banner.h - codeH) / 2, codeW, codeH);
+  const left = banner.x + pad * 2 + codeW;
+  const room = banner.x + banner.w - starsW - pad - left;
+  if (room > banner.h) {
+    drawTagline(ctx, creditsLine(state.text.title), left + room / 2, banner.y + banner.h * 0.52, room,
+      banner.h * 0.26);
   }
   if (state.stars > 0) {
     drawRatingStars(ctx, banner.x + banner.w - banner.h * 0.3, banner.y + banner.h * 0.52, starSize, state.stars);
@@ -133,29 +146,35 @@ const TAG_TILT = -0.05;
 const TAG_TEXT = { pen: 2.6, tracking: 1.2, italic: 0.06 };
 
 /**
- * A panel's label ("THE DRIVER") as a small, slightly tilted white tag with bold black letters and a thin dark
- * outline, inside the panel's lower-left corner. Sized from the cover's short side; it is kept inside the panel's
- * slanted edges (tilt included) and its letters shrink when the panel is narrow, so it is never clipped. A tag
- * that would sit under the caption's `avoid` boxes is left out rather than drawn half hidden.
+ * A panel's label ("THE DRIVER") as a small, slightly tilted white tag with bold black letters, a thin dark
+ * outline and a tab in the panel's accent colour. Sized from the cover's short side; it is kept inside the panel's
+ * slanted edges (tilt included) and its letters shrink when the panel is narrow, so it is never clipped. It takes
+ * the first corner (lower-left, upper-left, lower-right, upper-right) clear of the caption's `avoid` boxes, and is
+ * left out rather than drawn half hidden when none is.
  */
-function drawPanelLabel(ctx, panel, label, geometry, avoid = []) {
+function drawPanelLabel(ctx, panel, label, geometry, avoid = [], accent = '#ff2d95') {
   const { short, gutter } = geometry;
   const tagH = Math.max(12, short * 0.044);
   const pad = gutter / 2 + tagH * 0.5;
   const textH = tagH * 0.6;
   const built = buildTextPath(label, TAG_TEXT);
-  const wanted = (built.width / built.height) * textH + tagH * 0.9;
-  const bottom = panel.bounds.y + panel.bounds.h - pad;
-  const top = bottom - tagH - Math.abs(Math.sin(TAG_TILT)) * wanted;
-  const [leftTop, rightTop] = polygonSpanAt(panel.polygon, top);
-  const [leftBottom, rightBottom] = polygonSpanAt(panel.polygon, bottom);
-  const left = Math.max(leftTop, leftBottom) + pad;
-  const room = Math.min(rightTop, rightBottom) - pad - left;
-  if (!(room > tagH * 2.5) || top < panel.bounds.y) return;
-  const tagW = Math.min(wanted, room);
-  const hidden = avoid.some((box) => left < box.x + box.w && left + tagW > box.x && top < box.y + box.h
-    && bottom > box.y);
-  if (hidden) return;
+  const wanted = (built.width / built.height) * textH + tagH * 1.2;
+  const rise = Math.abs(Math.sin(TAG_TILT)) * wanted;
+  const { y: py, h: ph } = panel.bounds;
+  const spots = [[false, false], [true, false], [false, true], [true, true]].map(([upper, right]) => {
+    const top = upper ? py + pad : py + ph - pad - tagH - rise;
+    const bottom = top + tagH + rise;
+    const [leftTop, rightTop] = polygonSpanAt(panel.polygon, top);
+    const [leftBottom, rightBottom] = polygonSpanAt(panel.polygon, bottom);
+    const lo = Math.max(leftTop, leftBottom) + pad;
+    const hi = Math.min(rightTop, rightBottom) - pad;
+    const tagW = Math.min(wanted, hi - lo);
+    return { top, bottom, tagW, room: hi - lo, left: right ? hi - tagW : lo };
+  });
+  const spot = spots.find(({ top, bottom, tagW, room, left }) => room > tagH * 2.5 && top >= py && bottom <= py + ph
+    && !avoid.some((box) => left < box.x + box.w && left + tagW > box.x && top < box.y + box.h && bottom > box.y));
+  if (!spot) return;
+  const { top, bottom, tagW, left } = spot;
   const line = Math.max(1, short * 0.0024);
   ctx.save();
   ctx.translate(left + tagW / 2, (top + bottom) / 2);
@@ -164,11 +183,13 @@ function drawPanelLabel(ctx, panel, label, geometry, avoid = []) {
   ctx.fillRect(-tagW / 2 + tagH * 0.09, -tagH / 2 + tagH * 0.11, tagW, tagH);
   ctx.fillStyle = '#fbf8f1';
   ctx.fillRect(-tagW / 2, -tagH / 2, tagW, tagH);
+  ctx.fillStyle = accent;
+  ctx.fillRect(-tagW / 2, -tagH / 2, tagH * 0.3, tagH);
   ctx.strokeStyle = '#0a0610';
   ctx.lineWidth = line;
   ctx.strokeRect(-tagW / 2 + line / 2, -tagH / 2 + line / 2, tagW - line, tagH - line);
-  drawFittedLine(ctx, label, { cx: 0, cy: 0, maxWidth: tagW - tagH * 0.7, maxHeight: textH, style: SMALL_STYLES.panelTag,
-    ...TAG_TEXT });
+  drawFittedLine(ctx, label, { cx: tagH * 0.15, cy: 0, maxWidth: tagW - tagH * 1.0, maxHeight: textH,
+    style: SMALL_STYLES.panelTag, ...TAG_TEXT });
   ctx.restore();
 }
 
@@ -207,8 +228,9 @@ export function renderCover(ctx, w, h, state, photos) {
   applyPrintTexture(ctx, ink.w, ink.h, { halftone: Math.min(0.6, preset.halftone * 2.4), grain: 0, seed: state.seed,
     cell: w / 170, x: ink.x, y: ink.y });
   for (const panel of geometry.panels) {
-    const colours = panel.index % 2 ? [preset.rim[1], preset.rim[0]] : [preset.rim[0], preset.rim[1]];
-    drawNeonRim(ctx, panel.polygon, panel.bounds, colours, 0.85, geometry.short * 0.006);
+    // Each panel gets its own accent (hot pink, cyan, amber, violet, teal) as rim light from both sides.
+    const accent = PANEL_ACCENTS[panel.index % PANEL_ACCENTS.length];
+    drawNeonRim(ctx, panel.polygon, panel.bounds, [accent, accent], 0.95, geometry.short * 0.006);
   }
   const { area } = geometry;
   const hasTitle = Boolean(state.text.title.trim());
@@ -239,9 +261,12 @@ export function renderCover(ctx, w, h, state, photos) {
   const caption = drawCaptionBlock(ctx, place, state.text, preset);
   for (const panel of geometry.panels) {
     const label = (state.panels[panel.index]?.label ?? '').trim();
-    if (label) drawPanelLabel(ctx, panel, label, geometry, caption.parts);
+    if (label) {
+      drawPanelLabel(ctx, panel, label, geometry, caption.parts, PANEL_ACCENTS[panel.index % PANEL_ACCENTS.length]);
+    }
   }
   if (geometry.banner) drawBannerText(ctx, geometry.banner, state);
+  if (geometry.strip) drawTopStrip(ctx, geometry.strip, preset);
   applyPrintTexture(ctx, w, h, { halftone: 0, grain: preset.grain * 0.45, seed: state.seed + 101 });
   ctx.restore();
   return { geometry, caption };

@@ -30,19 +30,18 @@ function slantedColumns(lines) {
 
 /** Landscape (and square) panels for each layout, wide side across. */
 const LANDSCAPE = {
-  // Hero on the left half, then a 2x2 block of balanced panels with slanted seams (top row a little taller).
+  // Three panels across the top (the hero widest) over two across the bottom, all with slanted seams; the title
+  // sits on the row seam, so every panel keeps most of its picture in view.
   poster: () => {
-    const seam = [0.525, 0.475];
-    const cut = [0.765, 0.735];
-    const row = [0.56, 0.53];
-    const a = cross(...seam, ...row);
-    const b = cross(...cut, ...row);
+    const row = [0.6, 0.56];
+    const [a, b] = [[0.43, 0.39], [0.72, 0.69]].map((line) => cross(...line, ...row));
+    const c = cross(0.53, 0.49, ...row);
     return [
-      [[0, 0], [seam[0], 0], [seam[1], 1], [0, 1]],
-      [[seam[0], 0], [cut[0], 0], b, a],
-      [[cut[0], 0], [1, 0], [1, row[1]], b],
-      [a, b, [cut[1], 1], [seam[1], 1]],
-      [b, [1, row[1]], [1, 1], [cut[1], 1]],
+      [[0, 0], [0.43, 0], a, [0, row[0]]],
+      [[0.43, 0], [0.72, 0], b, a],
+      [[0.72, 0], [1, 0], [1, row[1]], b],
+      [[0, row[0]], c, [0.49, 1], [0, 1]],
+      [c, [1, row[1]], [1, 1], [0.49, 1]],
     ];
   },
   hero: () => [rect(0, 0, 1, 1)],
@@ -113,6 +112,25 @@ const LANDSCAPE = {
   },
 };
 
+/** Portrait panels for layouts that are not simply the landscape one turned (columns into rows). */
+const PORTRAIT = {
+  // Two rows of two (hero and angler on top) over one wide panel; the title sits on the lower row seam.
+  poster: () => {
+    const rowA = [0.4, 0.44];
+    const rowB = [0.7, 0.67];
+    const pa = cross(0.58, 0.54, ...rowA);
+    const pb = cross(0.47, 0.51, ...rowA);
+    const pc = cross(0.47, 0.51, ...rowB);
+    return [
+      [[0, 0], [0.58, 0], pa, [0, rowA[0]]],
+      [[0.58, 0], [1, 0], [1, rowA[1]], pa],
+      [[0, rowA[0]], pb, pc, [0, rowB[0]]],
+      [pb, [1, rowA[1]], [1, rowB[1]], pc],
+      [[0, rowB[0]], [1, rowB[1]], [1, 1], [0, 1]],
+    ];
+  },
+};
+
 /**
  * A caption anchor: centre (x, y) as 0..1 of the panel area, the share of the cover width the title may use and
  * the share of the short side its height may use.
@@ -121,8 +139,8 @@ const at = (x, y, width = 0.84, height = 0.36) => ({ x, y, width, height });
 
 /** Layout catalogue in the order the editor lists it, with the default caption anchor per aspect. */
 export const LAYOUTS = [
-  { id: 'poster', label: 'Poster 1+4', anchor: { landscape: at(0.53, 0.73, 0.74, 0.29), square: at(0.5, 0.7, 0.86),
-    portrait: at(0.5, 0.58, 0.88) } },
+  { id: 'poster', label: 'Poster 1+4', anchor: { landscape: at(0.53, 0.6, 0.62, 0.27), square: at(0.46, 0.56, 0.78, 0.28),
+    portrait: at(0.5, 0.69, 0.88, 0.32) } },
   { id: 'hero', label: 'Hero', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.76) } },
   { id: 'split', label: 'Split', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.5) } },
   { id: 'stack', label: 'Stack', anchor: { landscape: at(0.5, 0.74), square: at(0.5, 0.74), portrait: at(0.5, 0.7) } },
@@ -147,6 +165,7 @@ export function aspectOf(w, h) {
 
 /** The normalised panel polygons of a layout at an aspect; portrait turns columns into rows. */
 export function layoutPanels(layoutId, aspect) {
+  if (aspect === 'portrait' && PORTRAIT[layoutId]) return PORTRAIT[layoutId]();
   const build = LANDSCAPE[layoutId] ?? LANDSCAPE.hero;
   const panels = build();
   return aspect === 'portrait' ? panels.map(transposePolygon) : panels;

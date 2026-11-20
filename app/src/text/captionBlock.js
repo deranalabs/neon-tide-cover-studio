@@ -122,6 +122,22 @@ export function drawCaptionBlock(ctx, place, text, preset) {
       h: titleBox.h + reach * 0.8 });
   }
 
+  // With the banner on, the tagline rides on a small cyan ribbon tucked directly under the title.
+  const ribbonTag = (text.tagline ?? '').trim();
+  if (ribbonTag && place.taglineRibbon && plan.lines.length) {
+    const tagH = Math.max(12, maxHeight * 0.17);
+    const extrusion = (style.extrude?.depth ?? 0) * (titleBox.scale ?? 0) * 0.55;
+    const tagY = titleBox.y + titleBox.h + extrusion * 0.45 + tagH * 0.5;
+    const tagX = titleBox.x + titleBox.w * 0.46;
+    const tagW = Math.min(titleBox.w * 0.66, tagH * (ribbonTag.length * 0.6 + 2));
+    drawRibbon(ctx, tagX, tagY, tagW, tagH, { fill: [preset.neon[1], preset.rim[1]], shade: '#0e3f5c',
+      outline: '#14031c' });
+    drawFittedLine(ctx, ribbonTag, { cx: tagX, cy: tagY, maxWidth: tagW * 0.84, maxHeight: tagH * 0.66,
+      style: SMALL_STYLES.panelTag, pen: 2.2, tracking: 1.6, italic: 0.1 });
+    parts.push({ x: tagX - tagW / 2 - tagH, y: tagY - tagH * 0.6, w: tagW + tagH * 2, h: tagH * 1.5 });
+    cursorY = tagY + tagH * 0.85;
+  }
+
   const subtitle = (text.subtitle ?? '').trim();
   if (subtitle && text.ribbon !== true) {
     const scriptH = Math.max(14, maxHeight * 0.22);
@@ -179,6 +195,7 @@ export function drawCaptionBlock(ctx, place, text, preset) {
       ring: '#7a1440',
       outline: '#14031c',
     });
+    parts.push({ x: bx - r * 1.1, y: by - r * 1.1, w: r * 2.2, h: r * 2.2 });
   }
   return { box, titleBox, parts };
 }
